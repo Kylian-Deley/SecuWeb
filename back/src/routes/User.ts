@@ -7,7 +7,6 @@ const api = new Hono().basePath('/');
 
 const isConnected = async (c: any, next: Function) => {
     const token = c.req.header('authorization');
-
     if (!token) {
         return c.json({ msg: 'No token provided' }, 401);
     }
@@ -37,7 +36,6 @@ const isConcernedUser = (user: any, paramId: string) => {
 api.post('/register', async (c) => {
     try {
         const body = await c.req.json();
-        console.log(body)
         const newUser = new CreationsUsers(body);
         const savedUser = await newUser.save();
         return c.json(savedUser);
@@ -178,9 +176,6 @@ api.get('/user/:id', isConnected, async (c: any) => {
 });
 
 api.get('/users', isConnected, async (c: any) => {
-    if(!isAdmin(c.user)){
-        return c.json({ msg: 'Logged user has no permissions' }, 403);
-    }
     try {
         const users = await CreationsUsers.find();
         const usersWithAverageNote = users.map(user => {

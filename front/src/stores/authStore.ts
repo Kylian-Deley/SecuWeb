@@ -29,7 +29,6 @@ export const useAuthStore = defineStore('auth', {
           life: 3000
         });
       } catch (e: any) {
-        console.log(e)
         this.error = e.response.data.msg;
       }
     },

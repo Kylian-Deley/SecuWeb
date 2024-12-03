@@ -55,7 +55,6 @@ const confirmedAskingId = ref('');
 const fetchAskings = async () => {
   await askingStore.fetchAsking();
   askings.value = askingStore.askings;
-  console.log(askings.value)
 }
 
 const editAsking = (asking: any) => {
@@ -75,7 +74,6 @@ const confirmDeleteAsking = (asking: any) => {
 }
 
 const deleteAsking = async (asking: any) => {
-  console.log(asking)
   await askingStore.deleteAsking(asking.id);
   isConfirmDialogVisible.value = false;
   await fetchAskings();

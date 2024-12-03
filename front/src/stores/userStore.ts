@@ -41,7 +41,6 @@ export const useUserStore = defineStore('user', {
           detail: 'Vos modifications ont été effectuées avec succès',
           life: 3000
         });
-        console.log('Profile saved', user);
       } catch (e) {
         this.error = 'Erreur : ' + e;
         eventBus.emit('show-toast', {
@@ -143,6 +142,7 @@ export const useUserStore = defineStore('user', {
 
     async fetchUsersAdmin() {
       try {
+        const authStore = useAuthStore()
         const response = await apiClient.get('/users');
         this.users = response.data;
         this.filteredUsers = this.users;

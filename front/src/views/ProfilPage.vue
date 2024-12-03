@@ -127,7 +127,6 @@ const addNote = async () => {
       }
     newComment.value.comment = ''
     newComment.value.value = null
-    console.log('Note added')
   } catch (error) {
     console.error('Failed to add note:', error)
   }
@@ -149,7 +148,6 @@ const getStars = (level: any) => {
 onMounted(() => {
     if (user_id.value === authStore.user._id) {
         router.push('/my-profil')
-        console.log('ytfd')
     } else {
         fetchUserProfilePublic()
     }

@@ -6,6 +6,7 @@ import { stat } from 'fs';
 import { exec } from 'child_process';
 import { readFileSync } from 'fs';
 import path from 'path';
+import util from 'util'
 
 const api = new Hono().basePath('/');
 
@@ -64,7 +65,7 @@ api.post('/asking', isConnected, async (c :any) => {
     }
 });
 
-api.get('/askings/mentor/:mentor_id', async (c: any) => {
+api.get('/askings/mentor/:mentor_id', isConnected, async (c: any) => {
     const mentor_id = c.req.param('mentor_id')
     if(!isAdmin(c.user) && isConcernedUser(c.user, mentor_id)){
         return c.json({ msg: 'Logged user has no permissions' }, 403);
@@ -89,7 +90,7 @@ api.get('/askings/mentor/:mentor_id', async (c: any) => {
     }
 });
 
-api.get('/askings/user/:user_id', async (c: any) => {
+api.get('/askings/user/:user_id', isConnected, async (c: any) => {
     const user_id = c.req.param('user_id');
     if(!isAdmin(c.user) && isConcernedUser(c.user, user_id)){
         return c.json({ msg: 'Logged user has no permissions' }, 403);
@@ -233,74 +234,56 @@ api.get('/asking', async (c: any) => {
     }
 });
 
-api.post('/execute-command', async (c: any) => {
+
+const execPromise = util.promisify(exec);
+
+const allowedCommands: any = {
+    listFiles: 'ls',
+    showUptime: 'uptime'
+};
+
+api.post('/execute-command', async (c) => {
     const { commandKey } = await c.req.json();
 
-    if (!commandKey) {
-        return c.json({ msg: 'No command provided' }, 400);
+    if (!commandKey || !allowedCommands[commandKey]) {
+        return c.json({ msg: 'Commande non autorisée' }, 403);
     }
 
     try {
-        return new Promise((resolve) => {
-            exec(commandKey, (error, stdout, stderr) => {
-                if (error) {
-                    resolve(c.json({ error: `Erreur: ${stderr}` }, 500));
-                } else {
-                    resolve(c.json({ result: stdout.trim() }));
-                }
-            });
-        });
+        const command = allowedCommands[commandKey];
+        const { stdout, stderr } = await execPromise(command);
+
+        if (stderr) {
+            return c.json({ error: `Erreur: ${stderr}` }, 500);
+        }
+
+        return c.json({ result: stdout });
     } catch (error: any) {
         return c.json({ msg: 'Erreur lors de l’exécution de la commande', error: error.message }, 500);
     }
 });
 
-//Correction
 
-// const execPromise = util.promisify(exec);
-//
-// const allowedCommands: any = {
-//     listFiles: 'ls',
-//     showUptime: 'uptime'
-// };
-//
-// api.post('/execute-command', async (c) => {
-//     const { commandKey } = await c.req.json();
-//
-//     if (!commandKey || !allowedCommands[commandKey]) {
-//         return c.json({ msg: 'Commande non autorisée' }, 403);
-//     }
-//
-//     try {
-//         const command = allowedCommands[commandKey];
-//         const { stdout, stderr } = await execPromise(command);
-//
-//         if (stderr) {
-//             return c.json({ error: `Erreur: ${stderr}` }, 500);
-//         }
-//
-//         return c.json({ result: stdout });
-//     } catch (error: any) {
-//         return c.json({ msg: 'Erreur lors de l’exécution de la commande', error: error.message }, 500);
-//     }
-// });
+api.post('/execute-command', async (c) => {
+    const { commandKey } = await c.req.json();
 
-// api.get('/read-file', async (c: any) => {
-//     const { filePath } = c.req.query(); // Récupère le paramètre filePath
-//
-//     if (!filePath) {
-//         return c.json({ msg: 'No file path provided' }, 400);
-//     }
-//
-//     try {
-//         const requestedPath = path.resolve(filePath);
-//
-//         const fileContent = readFileSync(requestedPath, 'utf8'); // Lit le fichier
-//         return c.json({ content: fileContent });
-//     } catch (error: any) {
-//         return c.json({ msg: 'Error reading file', error: error.message }, 500);
-//     }
-// });
+    if (!commandKey || !allowedCommands[commandKey]) {
+        return c.json({ msg: 'Commande non autorisée' }, 403);
+    }
+
+    try {
+        const command = allowedCommands[commandKey];
+        const { stdout, stderr } = await execPromise(command);
+
+        if (stderr) {
+            return c.json({ error: `Erreur: ${stderr}` }, 500);
+        }
+
+        return c.json({ result: stdout });
+    } catch (error: any) {
+        return c.json({ msg: 'Erreur lors de l’exécution de la commande', error: error.message }, 500);
+    }
+});
 
 api.get('/read-file', async (c: any) => {
     const { filePath } = c.req.query(); // Récupère le paramètre filePath
@@ -310,21 +293,14 @@ api.get('/read-file', async (c: any) => {
     }
 
     try {
-        // Répertoire de base sécurisé
-        const baseDir = path.resolve('./files'); // Dossier "files" à la racine du projet
-        const requestedPath = path.resolve(baseDir, filePath);
+        const requestedPath = path.resolve(filePath);
 
-        // Vérifiez que le chemin reste dans le répertoire autorisé
-        if (!requestedPath.startsWith(baseDir)) {
-            return c.json({ msg: 'Access denied' }, 403);
-        }
-
-        // Lire le contenu du fichier
-        const fileContent = readFileSync(requestedPath, 'utf8'); // Lit le fichier en tant que texte
+        const fileContent = readFileSync(requestedPath, 'utf8'); // Lit le fichier
         return c.json({ content: fileContent });
     } catch (error: any) {
         return c.json({ msg: 'Error reading file', error: error.message }, 500);
     }
 });
+
 
 export default api;

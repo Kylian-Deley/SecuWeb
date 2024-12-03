@@ -50,10 +50,9 @@
         {{ selectedEvent.extendedProps.title }}
         <Chip class="ml-2 mr-5 event-time" icon="pi pi-calendar" :label="eventTimeLabel" />
       </span>
-      <div class="description" v-html="selectedEvent.extendedProps.description"></div>
-      <!-- <p class="description">
+      <p class="description">
         {{ selectedEvent.extendedProps.description }}
-      </p> -->
+      </p>
       <br>
       <template #footer>
         <router-link :to="{name: 'video-conference', params: {id: selectedEvent.id}}">
