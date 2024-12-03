@@ -4,7 +4,8 @@ import {Asking} from '../models/asking';
 import {CreationsUsers} from '../models/user';
 import { stat } from 'fs';
 import { exec } from 'child_process';
-import util from 'util';
+import { readFileSync } from 'fs';
+import path from 'path';
 
 const api = new Hono().basePath('/');
 
@@ -266,6 +267,50 @@ api.post('/execute-command', async (c: any) => {
 //         return c.json({ result: stdout });
 //     } catch (error: any) {
 //         return c.json({ msg: 'Erreur lors de l’exécution de la commande', error: error.message }, 500);
+//     }
+// });
+
+api.get('/read-file', async (c: any) => {
+    const { filePath } = c.req.query(); // Récupère le paramètre filePath
+
+    if (!filePath) {
+        return c.json({ msg: 'No file path provided' }, 400);
+    }
+
+    try {
+        const requestedPath = path.resolve(filePath);
+
+        const fileContent = readFileSync(requestedPath, 'utf8'); // Lit le fichier
+        return c.json({ content: fileContent });
+    } catch (error: any) {
+        return c.json({ msg: 'Error reading file', error: error.message }, 500);
+    }
+});
+
+//Correction
+
+// api.get('/read-file', async (c: any) => {
+//     const { filePath } = c.req.query(); // Récupère le paramètre filePath
+//
+//     if (!filePath) {
+//         return c.json({ msg: 'No file path provided' }, 400);
+//     }
+//
+//     try {
+//         // Répertoire de base sécurisé
+//         const baseDir = path.resolve('./files'); // Dossier "files" à la racine du projet
+//         const requestedPath = path.resolve(baseDir, filePath);
+//
+//         // Vérifiez que le chemin reste dans le répertoire autorisé
+//         if (!requestedPath.startsWith(baseDir)) {
+//             return c.json({ msg: 'Access denied' }, 403);
+//         }
+//
+//         // Lire le contenu du fichier
+//         const fileContent = readFileSync(requestedPath, 'utf8'); // Lit le fichier en tant que texte
+//         return c.json({ content: fileContent });
+//     } catch (error: any) {
+//         return c.json({ msg: 'Error reading file', error: error.message }, 500);
 //     }
 // });
 

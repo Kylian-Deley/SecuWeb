@@ -53,18 +53,18 @@ const creationUsers = new Schema<Users>({
     notes: { type: [noteSchema], required: false }
 });
 
-creationUsers.pre('save', async function (next) {
-    const user = this as any;
-    if (!user.isModified('password')) return next();
-
-    try {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-        next();
-    } catch (error: any) {
-        next(error);
-    }
-});
+// creationUsers.pre('save', async function (next) {
+//     const user = this as any;
+//     if (!user.isModified('password')) return next();
+//
+//     try {
+//         const salt = await bcrypt.genSalt(10);
+//         user.password = await bcrypt.hash(user.password, salt);
+//         next();
+//     } catch (error: any) {
+//         next(error);
+//     }
+// });
 
 const CreationsUsers = model<Users>('User', creationUsers);
 
