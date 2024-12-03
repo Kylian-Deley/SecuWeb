@@ -16,7 +16,6 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(user: User) {
       try {
-        user.mail = user.mail.trim()
         const response = await apiClient.post('/login', user);
         this.user = response.data.user;
         this.token = response.data.user.token;
@@ -38,7 +37,7 @@ export const useAuthStore = defineStore('auth', {
     async register(newUser: User) {
       try {
         const response = await apiClient.post('/register', newUser);
-        // this.user = response.data.user;
+        this.user = response.data.user;
         this.error = null;
         eventBus.emit('show-toast', {
           severity: 'success',

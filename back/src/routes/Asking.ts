@@ -8,7 +8,7 @@ import util from 'util';
 
 const api = new Hono().basePath('/');
 
-const verifyToken = async (c: any, next: Function) => {
+const isConnected = async (c: any, next: Function) => {
     const token = c.req.header('authorization');
 
     if (!token) {
@@ -29,7 +29,15 @@ const verifyToken = async (c: any, next: Function) => {
     }
 };
 
-api.post('/asking', verifyToken, async (c :any) => {
+const isAdmin = (user: any) => {
+    return user.role.includes("ROLE_ADMIN")
+}
+
+const isConcernedUser = (user: any, paramId: string) => {
+    return user._id === paramId
+}
+
+api.post('/asking', isConnected, async (c :any) => {
     try {
         const { title, description, start_date, mentor_id } = await c.req.json();
 
@@ -56,6 +64,10 @@ api.post('/asking', verifyToken, async (c :any) => {
 });
 
 api.get('/askings/mentor/:mentor_id', async (c: any) => {
+    const mentor_id = c.req.param('mentor_id')
+    if(!isAdmin(c.user) && isConcernedUser(c.user, mentor_id)){
+        return c.json({ msg: 'Logged user has no permissions' }, 403);
+    }
     try {
         const mentor_id = c.req.param('mentor_id');
         const askings = await Asking.find({ mentor_id }).populate('mentor_id', 'pseudo').populate('user_id', 'pseudo');
@@ -77,8 +89,11 @@ api.get('/askings/mentor/:mentor_id', async (c: any) => {
 });
 
 api.get('/askings/user/:user_id', async (c: any) => {
+    const user_id = c.req.param('user_id');
+    if(!isAdmin(c.user) && isConcernedUser(c.user, user_id)){
+        return c.json({ msg: 'Logged user has no permissions' }, 403);
+    }
     try {
-        const user_id = c.req.param('user_id');
         const askings = await Asking.find({ user_id }).populate('mentor_id', 'pseudo').populate('user_id', 'pseudo');
 
         const results = askings.map((asking) => ({
@@ -97,7 +112,7 @@ api.get('/askings/user/:user_id', async (c: any) => {
     }
 });
 
-api.patch('/accept-asking/:id', verifyToken, async (c: any) => {
+api.patch('/accept-asking/:id', isConnected, async (c: any) => {
     try {
         const userId = c.user.id;
 
@@ -122,7 +137,7 @@ api.patch('/accept-asking/:id', verifyToken, async (c: any) => {
 });
 
 
-api.patch('/asking/:id', verifyToken, async (c: any) => {
+api.patch('/asking/:id', isConnected, async (c: any) => {
     try {
         const _id = c.req.param('id');
         const updateData = await c.req.json();
@@ -139,7 +154,7 @@ api.patch('/asking/:id', verifyToken, async (c: any) => {
     }
 });
 
-api.get('/asking/:id', verifyToken, async (c: any) => {
+api.get('/asking/:id', isConnected, async (c: any) => {
     try {
         const _id = c.req.param('id');
         const asking = await Asking.findOne({ _id })
@@ -171,7 +186,7 @@ api.get('/asking/:id', verifyToken, async (c: any) => {
     }
 });
 
-api.delete('/asking/:id', verifyToken, async (c: any) => {
+api.delete('/asking/:id', isConnected, async (c: any) => {
     try {
         const _id = c.req.param('id');
         const asking = await Asking.findByIdAndDelete(_id);
