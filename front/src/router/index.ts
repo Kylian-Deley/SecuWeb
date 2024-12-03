@@ -59,12 +59,12 @@ const router = createRouter({
       name: 'video-conference',
       component: VideoConference
     },
-    // {
-    //   path: '/:pathMatch(.*)*',
-    //   name: 'NotFound',
-    //   component: () => import('../views/NotFoundPage.vue')
-    // }
-    // ,
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('../views/NotFoundPage.vue')
+    }
+    ,
     {
       path: '/admin',
       component: AdminLayout,
@@ -77,7 +77,7 @@ const router = createRouter({
         },
         {
           path: 'askings',
-          meta: { requiresAdmin: true },
+          meta: { requiresAdmin: false },
           component: AdminAskings
         }
       ]

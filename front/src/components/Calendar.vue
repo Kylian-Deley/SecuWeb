@@ -1,82 +1,85 @@
 <template>
-  <Card style="margin-bottom: 10px;">
-    <template #title>
-      <span class="mr-3">Légende des événements</span>
-      <i
-        @click="displayLegende = !displayLegende" 
-        :class="displayLegende ? 'pi pi-minus' : 'pi pi-plus'"
-      />
-    </template>
-    <template #content v-if="displayLegende">
-      <div v-for="(event, index) in legendItems" :key="index" class="legend-item">
-        <Badge :style="{ backgroundColor: event.color }" class="mr-2"></Badge>
-        <span class="legend-text">{{ event.name }}</span>
-      </div>
-    </template>
-  </Card>
-  <FullCalendar ref="calendar" :options="calendarOptions" class="calendar-container" />
-  <Dialog v-model:visible="display" style="max-width: 500px;">
-    <template #header>
-      <div class="event-header">
-        <!-- <span v-if="isMyAsking">Ma demande de session à
-          <router-link :to="{ name: 'profil', params: { id: selectedEvent.extendedProps.mentor._id }}">
-            {{ selectedEvent.extendedProps.mentor.pseudo }}
-          </router-link>
-        </span>
-        <span class="event-header" v-else>Demande de session de
-          <router-link :to="{ name: 'profil', params: { id: selectedEvent.extendedProps.user._id }}">
-            {{ selectedEvent.extendedProps.user.pseudo }}
-          </router-link>
-        </span> -->
-        <span v-if="isMyAsking">
-          Ma demande de session à&nbsp;
-          <a :href="`/profil/${selectedEvent.extendedProps.mentor._id}`" target="_blank">
-            <b>{{ selectedEvent.extendedProps.mentor.pseudo }}</b>
-          </a>
-        </span>
-        <span class="event-header" v-else>
-          Demande de session de&nbsp;
-          <a :href="`/profil/${selectedEvent.extendedProps.user._id}`" target="_blank">
-            <b>{{ selectedEvent.extendedProps.user.pseudo }}</b>
-          </a>
-        </span>
-        <Chip v-if="selectedEvent.extendedProps.state === null" class="ml-2 mr-5 pending" icon="pi pi-clock" label="En attente" />
-        <Chip v-if="selectedEvent.extendedProps.state" class="ml-2 mr-5 accepted" icon="pi pi-check" label="Accepter" />
-        <Chip v-if="selectedEvent.extendedProps.state === false" class="ml-2 mr-5 refused" icon="pi pi-times" label="Refusé" />
-      </div>
-    </template>
-    <span class="title">
-      {{ selectedEvent.extendedProps.title }}
-      <Chip class="ml-2 mr-5 event-time" icon="pi pi-calendar" :label="eventTimeLabel" />
-    </span>
-    <p class="description">
-      {{ selectedEvent.extendedProps.description }}
-    </p>
-    <br>
-    <template #footer>
-      <router-link :to="{name: 'video-conference', params: {id: selectedEvent.id}}">
-      <Button
-        v-if="selectedEvent.extendedProps.state" 
-        label="Acceder a la session"
-        icon="pi pi-video"
-      />
-      </router-link>
-      <Button 
-        v-if="!isMyAsking && selectedEvent.extendedProps.state === null"
-        label="Accepter"
-        icon="pi pi-check"
-        class="p-button-success"
-        @click="acceptAsking"
-      />
-      <Button 
-        v-if="!isMyAsking && selectedEvent.extendedProps.state === null"
-        label="Refused"
-        icon="pi pi-times"
-        class="p-button-danger"
-        @click="refuseAsking"
-      />
-    </template>
-  </Dialog>
+  <div>
+    <Card style="margin-bottom: 10px;">
+      <template #title>
+        <span class="mr-3">Légende des événements</span>
+        <i
+          @click="displayLegende = !displayLegende" 
+          :class="displayLegende ? 'pi pi-minus' : 'pi pi-plus'"
+        />
+      </template>
+      <template #content v-if="displayLegende">
+        <div v-for="(event, index) in legendItems" :key="index" class="legend-item">
+          <Badge :style="{ backgroundColor: event.color }" class="mr-2"></Badge>
+          <span class="legend-text">{{ event.name }}</span>
+        </div>
+      </template>
+    </Card>
+    <FullCalendar ref="calendar" :options="calendarOptions" class="calendar-container" />
+    <Dialog v-model:visible="display" style="max-width: 500px;">
+      <template #header>
+        <div class="event-header">
+          <!-- <span v-if="isMyAsking">Ma demande de session à
+            <router-link :to="{ name: 'profil', params: { id: selectedEvent.extendedProps.mentor._id }}">
+              {{ selectedEvent.extendedProps.mentor.pseudo }}
+            </router-link>
+          </span>
+          <span class="event-header" v-else>Demande de session de
+            <router-link :to="{ name: 'profil', params: { id: selectedEvent.extendedProps.user._id }}">
+              {{ selectedEvent.extendedProps.user.pseudo }}
+            </router-link>
+          </span> -->
+          <span v-if="isMyAsking">
+            Ma demande de session à&nbsp;
+            <a :href="`/profil/${selectedEvent.extendedProps.mentor._id}`" target="_blank">
+              <b>{{ selectedEvent.extendedProps.mentor.pseudo }}</b>
+            </a>
+          </span>
+          <span class="event-header" v-else>
+            Demande de session de&nbsp;
+            <a :href="`/profil/${selectedEvent.extendedProps.user._id}`" target="_blank">
+              <b>{{ selectedEvent.extendedProps.user.pseudo }}</b>
+            </a>
+          </span>
+          <Chip v-if="selectedEvent.extendedProps.state === null" class="ml-2 mr-5 pending" icon="pi pi-clock" label="En attente" />
+          <Chip v-if="selectedEvent.extendedProps.state" class="ml-2 mr-5 accepted" icon="pi pi-check" label="Accepter" />
+          <Chip v-if="selectedEvent.extendedProps.state === false" class="ml-2 mr-5 refused" icon="pi pi-times" label="Refusé" />
+        </div>
+      </template>
+      <span class="title">
+        {{ selectedEvent.extendedProps.title }}
+        <Chip class="ml-2 mr-5 event-time" icon="pi pi-calendar" :label="eventTimeLabel" />
+      </span>
+      <div class="description" v-html="selectedEvent.extendedProps.description"></div>
+      <!-- <p class="description">
+        {{ selectedEvent.extendedProps.description }}
+      </p> -->
+      <br>
+      <template #footer>
+        <router-link :to="{name: 'video-conference', params: {id: selectedEvent.id}}">
+        <Button
+          v-if="selectedEvent.extendedProps.state" 
+          label="Acceder a la session"
+          icon="pi pi-video"
+        />
+        </router-link>
+        <Button 
+          v-if="!isMyAsking && selectedEvent.extendedProps.state === null"
+          label="Accepter"
+          icon="pi pi-check"
+          class="p-button-success"
+          @click="acceptAsking"
+        />
+        <Button 
+          v-if="!isMyAsking && selectedEvent.extendedProps.state === null"
+          label="Refused"
+          icon="pi pi-times"
+          class="p-button-danger"
+          @click="refuseAsking"
+        />
+      </template>
+    </Dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -97,10 +100,10 @@ import Badge from 'primevue/badge'
 
 const askingStore = useAskingStore()
 const authStore = useAuthStore()
-const calendar = ref(null);
+const calendar = ref<any>(null);
 const events = ref([])
 const display = ref(false)
-const selectedEvent = ref(null)
+const selectedEvent = ref<any>(null)
 const displayLegende = ref(false)
 const legendItems = ref([
   { name: 'Mes demandes validées', color: 'blue' },
@@ -134,7 +137,7 @@ const calendarOptions = ref({
 })
 
 
-const transformToEvent = (session) => {
+const transformToEvent = (session: any) => {
   return {
     id:session.id,
     title: session.title,

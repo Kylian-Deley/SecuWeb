@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 const api = new Hono().basePath('/');
 
-const verifyToken = async (c: any, next: Function) => {
+const isConnected = async (c: any, next: Function) => {
     const token = c.req.header('authorization');
 
     if (!token) {
@@ -26,9 +26,18 @@ const verifyToken = async (c: any, next: Function) => {
     }
 };
 
+const isAdmin = (user: any) => {
+    return user.role.includes("ROLE_ADMIN")
+}
+
+const isConcernedUser = (user: any, paramId: string) => {
+    return user._id === paramId
+}
+
 api.post('/register', async (c) => {
     try {
         const body = await c.req.json();
+        console.log(body)
         const newUser = new CreationsUsers(body);
         const savedUser = await newUser.save();
         return c.json(savedUser);
@@ -62,23 +71,11 @@ api.post('/login', async (c) => {
     }
 });
 
-api.patch('/user', verifyToken, async (c: any) => {
-    try {
-        const body = await c.req.json();
-        const user = c.user;
-
-        Object.keys(body).forEach((key) => {
-            user[key] = body[key];
-        });
-
-        const updatedUser = await user.save();
-        return c.json(updatedUser);
-    } catch (error: any) {
-        return c.json({ msg: 'Error updating user', error: error.message }, 500);
+api.patch('/user/:id', isConnected, async (c: any) => {
+    const userId = c.req.param('id');
+    if(!isAdmin(c.user) && isConcernedUser(c.user, userId)){
+        return c.json({ msg: 'Logged user has no permissions' }, 403);
     }
-});
-
-api.patch('/user/:id', async (c: any) => {
     try {
         const userId = c.req.param('id');
         const body = await c.req.json();
@@ -100,10 +97,12 @@ api.patch('/user/:id', async (c: any) => {
     }
 });
 
-api.delete('/user/:id', async (c: any) => {
+api.delete('/user/:id', isConnected, async (c: any) => {
+    const userId = c.req.param('id');
+    if(!isAdmin(c.user) && isConcernedUser(c.user, userId)){
+        return c.json({ msg: 'Logged user has no permissions' }, 403);
+    }
     try {
-        const userId = c.req.param('id');
-
         const user = await CreationsUsers.findById(userId);
 
         if (!user) {
@@ -117,9 +116,13 @@ api.delete('/user/:id', async (c: any) => {
     }
 });
 
-api.post('/user/:id/note', verifyToken, async (c: any) => {
+api.post('/user/:id/note', isConnected, async (c: any) => {
+    const _id = c.req.param('id');
+    if(!isAdmin(c.user) && isConcernedUser(c.user, _id)){
+        return c.json({ msg: 'Logged user has no permissions' }, 403);
+    }
     try {
-        const _id = c.req.param('id');
+        
         const { comment, value } = await c.req.json();
 
         const user = await CreationsUsers.findById(_id);
@@ -138,10 +141,12 @@ api.post('/user/:id/note', verifyToken, async (c: any) => {
 });
 
 
-api.get('/user/:id', verifyToken, async (c: any) => {
+api.get('/user/:id', isConnected, async (c: any) => {
+    const _id = c.req.param('id');
+    if(!isAdmin(c.user) && isConcernedUser(c.user, _id)){
+        return c.json({ msg: 'Logged user has no permissions' }, 403);
+    }
     try {
-        const _id = c.req.param('id');
-
         const user = await CreationsUsers.findOne({ _id });
 
         if (!user) {
@@ -172,10 +177,12 @@ api.get('/user/:id', verifyToken, async (c: any) => {
     }
 });
 
-api.get('/users', async (c: any) => {
+api.get('/users', isConnected, async (c: any) => {
+    if(!isAdmin(c.user)){
+        return c.json({ msg: 'Logged user has no permissions' }, 403);
+    }
     try {
         const users = await CreationsUsers.find();
-
         const usersWithAverageNote = users.map(user => {
             const notes = user.notes;
             const totalNotes = notes.length;
