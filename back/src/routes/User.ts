@@ -50,42 +50,26 @@ api.post('/login', async (c) => {
     try {
         const { mail, password } = await c.req.json();
 
-        const user = await CreationsUsers.find({ mail });
+        const user = await CreationsUsers.findOne({ mail });
+        if (!user) {
+            return c.json({ msg: 'Invalid email or password' }, 401);
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return c.json({ msg: 'Invalid email or password' }, 401);
+        }
+
+        if (!user.token) {
+            user.token = crypto.randomBytes(16).toString('hex');
+            await user.save();
+        }
 
         return c.json({ user });
     } catch (error: any) {
         return c.json({ msg: 'Error logging in', error: error.message }, 500);
     }
 });
-
-// Correction
-
-// api.post('/login', async (c) => {
-//     try {
-//         const { mail, password } = await c.req.json();
-//
-//         const user = await CreationsUsers.findOne({ mail });
-//         if (!user) {
-//             return c.json({ msg: 'Invalid email or password' }, 401);
-//         }
-//
-//         const isMatch = await bcrypt.compare(password, user.password);
-//         if (!isMatch) {
-//             return c.json({ msg: 'Invalid email or password' }, 401);
-//         }
-//
-//         if (!user.token) {
-//             user.token = crypto.randomBytes(16).toString('hex');
-//             await user.save();
-//         }
-//
-//         return c.json({ user });
-//     } catch (error: any) {
-//         return c.json({ msg: 'Error logging in', error: error.message }, 500);
-//     }
-// });
-
-
 
 api.patch('/user/:id', isConnected, async (c: any) => {
     const userId = c.req.param('id');

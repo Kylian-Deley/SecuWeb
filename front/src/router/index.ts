@@ -25,6 +25,11 @@ const router = createRouter({
       component: () => import('../views/Demo-RCE.vue')
     },
     {
+      path: '/lfi',
+      name: 'Lfi',
+      component: () => import('../views/LFI.vue')
+    },
+    {
       path: '/new-asking/:mentor_id',
       name: 'newAsking',
       component: () => import('../views/NewAskingPage.vue')
