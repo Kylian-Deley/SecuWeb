@@ -1,6 +1,6 @@
 <template>
   <div class="rce-demo mt-6">
-    <h1>Démo RCE (à des fins éducatives)</h1>
+    <h1>Démo RCE</h1>
     <input v-model="command" placeholder="Entrez une commande shell" />
     <button @click="executeCommand">Exécuter la commande</button>
     <div v-if="result" class="result">
