@@ -293,9 +293,17 @@ api.get('/read-file', async (c: any) => {
     }
 
     try {
-        const requestedPath = path.resolve(filePath);
+        // Répertoire de base sécurisé
+        const baseDir = path.resolve('./files'); // Dossier "files" à la racine du projet
+        const requestedPath = path.resolve(baseDir, filePath);
 
-        const fileContent = readFileSync(requestedPath, 'utf8'); // Lit le fichier
+        // Vérifiez que le chemin reste dans le répertoire autorisé
+        if (!requestedPath.startsWith(baseDir)) {
+            return c.json({ msg: 'Access denied' }, 403);
+        }
+
+        // Lire le contenu du fichier
+        const fileContent = readFileSync(requestedPath, 'utf8'); // Lit le fichier en tant que texte
         return c.json({ content: fileContent });
     } catch (error: any) {
         return c.json({ msg: 'Error reading file', error: error.message }, 500);
